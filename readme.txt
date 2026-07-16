@@ -1,9 +1,9 @@
 === Really Simple CSV Importer ===
-Contributors: hissy
+Contributors: hissy, websoudan
 Tags: importer, csv, acf, cfs, scf
 Requires at least: 3.6
-Tested up to: 4.3
-Stable tag: 1.3
+Tested up to: 7.0
+Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,7 +62,8 @@ If advanced custom field key is exists, importer will trying to use [update_fiel
 How to find advanced custom field key: [Finding the field key](http://www.advancedcustomfields.com/resources/functions/update_field/#finding-the%20field%20key)
 
 = Official public repository =
-Add star and read future issues about rs-csv-importer on [GitHub](https://github.com/hissy/rs-csv-importer)!
+This plugin is now maintained by [websoudan](https://web-soudan.co.jp), taking over from the original author Takuro Hishikawa (@hissy). Thank you hissy for all the years of work!
+Add star and read future issues about rs-csv-importer on [GitHub](https://github.com/web-soudan/rs-csv-importer)!
 
 = Thanks =
 Cover banner designed by @[luchino__](http://uwasora.com/)
@@ -349,6 +350,10 @@ Example: Update row based on a custom field ID/key match (Download from [gist](h
 
 == Changelog ==
 
+= 1.3.1 =
+* Plugin maintenance handed over from @hissy to @websoudan
+* Security fix: prevent arbitrary file upload via post_thumbnail/media_file (validate real file content against allowed mime types, restrict thumbnails to images, download remote files through WordPress core sideload)
+* Bug fix: fatal error on PHP 8 when addMediaFile() is called without attachment data
 = 1.3 =
 * Some Enhancements (Thanks @piwi!)
   * Attachment support
