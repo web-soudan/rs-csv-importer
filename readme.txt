@@ -66,7 +66,7 @@ This plugin is now maintained by [websoudan](https://web-soudan.co.jp), taking o
 Add star and read future issues about rs-csv-importer on [GitHub](https://github.com/web-soudan/rs-csv-importer)!
 
 = Thanks =
-Cover banner designed by @[luchino__](http://uwasora.com/)
+Cover banner designed by @[luchino__](https://x.com/luchino__)
 
 == Installation ==
 
