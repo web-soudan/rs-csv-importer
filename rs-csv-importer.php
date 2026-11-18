@@ -105,7 +105,33 @@ class RS_CSV_Importer extends WP_Importer {
 		if ( is_wp_error( $result ) )
 			return $result;
 	}
-	
+
+	/**
+	* Find a post by its title.
+	*
+	* Same lookup as get_page_by_title(), which is deprecated since WordPress 6.2:
+	* any post status, oldest ID first.
+	*
+	* @param string $title
+	* @param string $post_type
+	* @return WP_Post|null
+	*/
+	public function find_post_by_title($title, $post_type) {
+		$posts = get_posts( array(
+			'title'                  => $title,
+			'post_type'              => $post_type,
+			'post_status'            => get_post_stati(),
+			'posts_per_page'         => 1,
+			'orderby'                => 'ID',
+			'order'                  => 'ASC',
+			'update_post_term_cache' => false,
+			'update_post_meta_cache' => false,
+			'no_found_rows'          => true,
+		) );
+
+		return $posts ? $posts[0] : null;
+	}
+
 	/**
 	* Insert post and postmeta using `RSCSV_Import_Post_Helper` class.
 	*
@@ -224,23 +250,10 @@ class RS_CSV_Importer extends WP_Importer {
 						if ( ! $post_type ) {
 							$post_type = 'post';
 						}
-						// Same lookup as get_page_by_title(), which is deprecated since WordPress 6.2:
-						// any post status, oldest ID first.
-						$same_title_posts = get_posts( array(
-							'title'                  => $post_title,
-							'post_type'              => $post_type,
-							'post_status'            => get_post_stati(),
-							'posts_per_page'         => 1,
-							'orderby'                => 'ID',
-							'order'                  => 'ASC',
-							'fields'                 => 'ids',
-							'update_post_term_cache' => false,
-							'update_post_meta_cache' => false,
-							'no_found_rows'          => true,
-						) );
+						$same_title_post = $this->find_post_by_title($post_title, $post_type);
 
-						if ( ! empty($same_title_posts) ) {
-							$post['ID'] = $same_title_posts[0];
+						if ( $same_title_post ) {
+							$post['ID'] = $same_title_post->ID;
 							$is_update = true;
 						}
 					}
