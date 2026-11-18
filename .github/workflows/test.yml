@@ -12,7 +12,7 @@ on:
 
 jobs:
     phpunit:
-        name: PHPUnit (WordPress ${{ matrix.wp }})
+        name: PHPUnit (WordPress ${{ matrix.wp }}, PHP ${{ matrix.php }})
         runs-on: ubuntu-latest
         permissions:
             contents: read
@@ -20,8 +20,10 @@ jobs:
             fail-fast: false
             matrix:
                 wp: ['6.9', '7.0', '7.1']
+                php: ['8.3', '8.5']
         env:
             WP_ENV_CORE: WordPress/WordPress#${{ matrix.wp }}-branch
+            WP_ENV_PHP_VERSION: ${{ matrix.php }}
         steps:
             - uses: actions/checkout@v7
 
