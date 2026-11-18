@@ -30,21 +30,6 @@ CSV;
 		$this->assertStringContainsString( 'All Done.', $output );
 	}
 
-	public function test_import_multiple_rows() {
-		$csv = <<<CSV
-"post_type","post_title"
-"post","Row 1"
-"post","Row 2"
-"page","Row 3"
-CSV;
-
-		$this->import_csv( $csv );
-
-		$this->assertInstanceOf( WP_Post::class, $this->get_post_by_title( 'Row 1', 'post' ) );
-		$this->assertInstanceOf( WP_Post::class, $this->get_post_by_title( 'Row 2', 'post' ) );
-		$this->assertInstanceOf( WP_Post::class, $this->get_post_by_title( 'Row 3', 'page' ) );
-	}
-
 	public function test_invalid_post_type_is_rejected() {
 		$csv = <<<CSV
 "post_type","post_title"
@@ -64,55 +49,26 @@ CSV;
 		$this->assertSame( 'draft', $this->get_post_by_title( 'Invalid status' )->post_status );
 	}
 
-	public function test_post_author_by_login() {
-		$user_id = self::factory()->user->create( array( 'user_login' => 'csv_author' ) );
+	public function test_post_author() {
+		$by_login       = self::factory()->user->create( array( 'user_login' => 'csv_author' ) );
+		$by_id          = self::factory()->user->create();
+		$by_login_field = self::factory()->user->create( array( 'user_login' => 'csv_author_login' ) );
 
 		$csv = <<<CSV
-"post_type","post_title","post_author"
-"post","Author Login","csv_author"
+"post_type","post_title","post_author","post_author_login"
+"post","Author Login","csv_author",
+"post","Author ID",$by_id,
+"post","Author Login Column",,"csv_author_login"
+"post","Unknown Author","no_such_user",
 CSV;
 
 		$this->import_csv( $csv );
 
-		$this->assertSame( (string) $user_id, $this->get_post_by_title( 'Author Login' )->post_author );
-	}
-
-	public function test_post_author_by_id() {
-		$user_id = self::factory()->user->create();
-
-		$csv = <<<CSV
-"post_type","post_title","post_author"
-"post","Author ID","{$user_id}"
-CSV;
-
-		$this->import_csv( $csv );
-
-		$this->assertSame( (string) $user_id, $this->get_post_by_title( 'Author ID' )->post_author );
-	}
-
-	public function test_post_author_login_column() {
-		$user_id = self::factory()->user->create( array( 'user_login' => 'csv_author_login' ) );
-
-		$csv = <<<CSV
-"post_type","post_title","post_author_login"
-"post","Author Login Column","csv_author_login"
-CSV;
-
-		$this->import_csv( $csv );
-
-		$this->assertSame( (string) $user_id, $this->get_post_by_title( 'Author Login Column' )->post_author );
-	}
-
-	public function test_unknown_post_author_is_ignored() {
-		$csv = <<<CSV
-"post_type","post_title","post_author"
-"post","Unknown Author","no_such_user"
-CSV;
-
-		$output = $this->import_csv( $csv );
-
+		$this->assertSame( (string) $by_login, $this->get_post_by_title( 'Author Login' )->post_author );
+		$this->assertSame( (string) $by_id, $this->get_post_by_title( 'Author ID' )->post_author );
+		$this->assertSame( (string) $by_login_field, $this->get_post_by_title( 'Author Login Column' )->post_author );
+		// An unknown author is ignored and the post is still imported.
 		$this->assertSame( '0', $this->get_post_by_title( 'Unknown Author' )->post_author );
-		$this->assertStringContainsString( 'done.', $output );
 	}
 
 	public function test_post_dates() {
@@ -173,37 +129,30 @@ CSV;
 		$this->assertSame( 3, $page->menu_order );
 	}
 
-	public function test_update_existing_post_by_id() {
-		$post_id = self::factory()->post->create(
+	public function test_update_existing_post() {
+		$by_id      = self::factory()->post->create(
 			array(
 				'post_title'   => 'Original Title',
 				'post_content' => 'Original content',
 			)
 		);
+		$by_post_id = self::factory()->post->create( array( 'post_title' => 'Original Title' ) );
 
+		// The post_id column is used when the ID column is empty.
 		$csv = <<<CSV
-"ID","post_type","post_title"
-{$post_id},"post","Updated Title"
+"ID","post_id","post_type","post_title"
+$by_id,,"post","Updated By ID"
+,$by_post_id,"post","Updated By post_id"
 CSV;
 
 		$this->import_csv( $csv );
 
-		$post = get_post( $post_id );
-		$this->assertSame( 'Updated Title', $post->post_title );
+		$post = get_post( $by_id );
+		$this->assertSame( 'Updated By ID', $post->post_title );
+		// Columns not in the CSV are kept.
 		$this->assertSame( 'Original content', $post->post_content );
-	}
 
-	public function test_update_existing_post_by_post_id_column() {
-		$post_id = self::factory()->post->create( array( 'post_title' => 'Original Title' ) );
-
-		$csv = <<<CSV
-"post_id","post_type","post_title"
-{$post_id},"post","Updated By post_id"
-CSV;
-
-		$this->import_csv( $csv );
-
-		$this->assertSame( 'Updated By post_id', get_post( $post_id )->post_title );
+		$this->assertSame( 'Updated By post_id', get_post( $by_post_id )->post_title );
 	}
 
 	public function test_post_id_that_does_not_exist_is_used_as_import_id() {

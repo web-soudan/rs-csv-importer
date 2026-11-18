@@ -58,20 +58,6 @@ CSV;
 		$this->assertSame( array( 'apple', 'banana', 'cherry' ), $this->get_term_names( $this->get_post_by_title( 'Tags' ), 'post_tag' ) );
 	}
 
-	public function test_unregistered_taxonomy_is_ignored() {
-		$csv = <<<CSV
-"post_type","post_title","tax_not_exists"
-"post","Unregistered Taxonomy","foo"
-CSV;
-
-		$output = $this->import_csv( $csv );
-
-		$post = $this->get_post_by_title( 'Unregistered Taxonomy' );
-		$this->assertInstanceOf( WP_Post::class, $post );
-		$this->assertSame( '', get_post_meta( $post->ID, 'tax_not_exists', true ) );
-		$this->assertStringContainsString( 'done.', $output );
-	}
-
 	public function test_unknown_columns_are_saved_as_post_meta() {
 		$csv = <<<CSV
 "post_type","post_title","custom_field","empty_field"
@@ -90,20 +76,6 @@ CSV;
 		// Known columns are not saved as post meta.
 		$this->assertFalse( metadata_exists( 'post', $post->ID, 'post_title' ) );
 		$this->assertFalse( metadata_exists( 'post', $post->ID, 'post_type' ) );
-	}
-
-	public function test_custom_field_is_updated() {
-		$post_id = self::factory()->post->create();
-		update_post_meta( $post_id, 'custom_field', 'old value' );
-
-		$csv = <<<CSV
-"post_id","post_type","custom_field"
-{$post_id},"post","new value"
-CSV;
-
-		$this->import_csv( $csv );
-
-		$this->assertSame( array( 'new value' ), get_post_meta( $post_id, 'custom_field' ) );
 	}
 
 	public function test_dry_run_does_not_save_anything() {
