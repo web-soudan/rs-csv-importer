@@ -1,7 +1,7 @@
 === Really Simple CSV Importer ===
 Contributors: hissy, websoudan, Toro_Unit
 Tags: importer, csv, acf, cfs, scf
-Requires at least: 3.6
+Requires at least: 6.9
 Tested up to: 7.0
 Stable tag: 1.3.1
 License: GPLv2 or later
