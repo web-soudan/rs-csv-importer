@@ -116,7 +116,7 @@ class ImportTest extends WP_UnitTestCase {
 	}
 
 	public function test_import_categories_and_custom_taxonomy_from_sample() {
-		$this->import_file( dirname( __DIR__, 2 ) . '/sample/movies.csv' );
+		$this->import_file( dirname( __DIR__, 3 ) . '/sample/movies.csv' );
 
 		$post = $this->get_post_by_title( 'Parker' );
 		$this->assertSame( array( 'action', 'crime', 'thriller' ), $this->get_term_names( $post, 'category' ) );

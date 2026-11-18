@@ -8,8 +8,11 @@
 	convertDeprecationsToExceptions="false"
 >
 	<testsuites>
-		<testsuite name="default">
-			<directory suffix="Test.php">tests/phpunit</directory>
+		<testsuite name="unit">
+			<directory suffix="Test.php">tests/phpunit/unit</directory>
+		</testsuite>
+		<testsuite name="integration">
+			<directory suffix="Test.php">tests/phpunit/integration</directory>
 		</testsuite>
 	</testsuites>
 </phpunit>
