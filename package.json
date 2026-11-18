@@ -1,0 +1,14 @@
+{
+	"name": "really-simple-csv-importer",
+	"private": true,
+	"license": "GPL-2.0-or-later",
+	"scripts": {
+		"wp-env": "wp-env",
+		"test:php": "npm run test:php:setup && npm run test:php:base",
+		"test:php:setup": "wp-env --config=.wp-env.test.json start",
+		"test:php:base": "wp-env --config=.wp-env.test.json run --env-cwd='wp-content/plugins/rs-csv-importer' wordpress vendor/bin/phpunit -c phpunit.xml.dist"
+	},
+	"devDependencies": {
+		"@wordpress/env": "^12.1.0"
+	}
+}
