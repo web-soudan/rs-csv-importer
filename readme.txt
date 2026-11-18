@@ -1,5 +1,5 @@
 === Really Simple CSV Importer ===
-Contributors: hissy, websoudan
+Contributors: hissy, websoudan, Toro_Unit
 Tags: importer, csv, acf, cfs, scf
 Requires at least: 3.6
 Tested up to: 7.0
