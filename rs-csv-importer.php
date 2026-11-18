@@ -224,10 +224,23 @@ class RS_CSV_Importer extends WP_Importer {
 						if ( ! $post_type ) {
 							$post_type = 'post';
 						}
-						$post_id = get_page_by_title($post_title, OBJECT, $post_type);
+						// Same lookup as get_page_by_title(), which is deprecated since WordPress 6.2:
+						// any post status, oldest ID first.
+						$same_title_posts = get_posts( array(
+							'title'                  => $post_title,
+							'post_type'              => $post_type,
+							'post_status'            => get_post_stati(),
+							'posts_per_page'         => 1,
+							'orderby'                => 'ID',
+							'order'                  => 'ASC',
+							'fields'                 => 'ids',
+							'update_post_term_cache' => false,
+							'update_post_meta_cache' => false,
+							'no_found_rows'          => true,
+						) );
 
-						if ( ! is_null($post_id) ) {
-							$post['ID'] = $post_id;
+						if ( ! empty($same_title_posts) ) {
+							$post['ID'] = $same_title_posts[0];
 							$is_update = true;
 						}
 					}
