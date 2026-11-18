@@ -70,33 +70,6 @@ abstract class Importer_TestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Run a callback while collecting PHP warnings instead of failing the test,
-	 * so the code keeps running as it does in production.
-	 *
-	 * @param callable $callback Callback to run.
-	 * @return string[] Warning messages.
-	 */
-	protected function collect_warnings( callable $callback ) {
-		$warnings = array();
-
-		set_error_handler(
-			function ( $errno, $errstr ) use ( &$warnings ) {
-				$warnings[] = $errstr;
-				return true;
-			},
-			E_WARNING
-		);
-
-		try {
-			$callback();
-		} finally {
-			restore_error_handler();
-		}
-
-		return $warnings;
-	}
-
-	/**
 	 * Find a post by its title.
 	 *
 	 * @param string $title     Post title.

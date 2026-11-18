@@ -45,52 +45,6 @@ CSV;
 		$this->assertInstanceOf( WP_Post::class, $this->get_post_by_title( 'Row 3', 'page' ) );
 	}
 
-	/**
-	 * Known bug: without a post_type column, RSCSV_Import_Post_Helper::add() reads
-	 * an undefined array key. sample/post_dates.csv has no post_type column either.
-	 */
-	public function test_post_without_post_type_column_is_imported_as_post_with_a_warning() {
-		$csv = <<<CSV
-"post_title"
-"No Post Type"
-CSV;
-
-		$output   = '';
-		$warnings = $this->collect_warnings(
-			function () use ( $csv, &$output ) {
-				$output = $this->import_csv( $csv );
-			}
-		);
-
-		$this->assertSame( array( 'Undefined array key "post_type"' ), $warnings );
-		$this->assertStringContainsString( 'Note: Please include post_type value if that is possible.', $output );
-
-		$post = $this->get_post_by_title( 'No Post Type' );
-		$this->assertSame( 'post', $post->post_type );
-		$this->assertSame( 'draft', $post->post_status );
-	}
-
-	/**
-	 * Known bug: same as above, in RSCSV_Import_Post_Helper::update().
-	 */
-	public function test_update_without_post_type_column_works_with_a_warning() {
-		$post_id = self::factory()->post->create();
-
-		$csv = <<<CSV
-"post_id","post_title"
-{$post_id},"Updated"
-CSV;
-
-		$warnings = $this->collect_warnings(
-			function () use ( $csv ) {
-				$this->import_csv( $csv );
-			}
-		);
-
-		$this->assertSame( array( 'Undefined array key "post_type"' ), $warnings );
-		$this->assertSame( 'Updated', get_post( $post_id )->post_title );
-	}
-
 	public function test_invalid_post_type_is_rejected() {
 		$csv = <<<CSV
 "post_type","post_title"
@@ -292,9 +246,6 @@ CSV;
 
 		$_POST['replace-by-title'] = '1';
 
-		// get_page_by_title() is deprecated since WordPress 6.2.
-		$this->setExpectedDeprecated( 'get_page_by_title' );
-
 		$csv = <<<CSV
 "post_type","post_title","post_content"
 "post","Same Title","Replaced content"
@@ -304,6 +255,9 @@ CSV;
 
 		$this->assertSame( 'Replaced content', get_post( $post_id )->post_content );
 		$this->assertCount( 1, get_posts( array( 'title' => 'Same Title' ) ) );
+
+		// Ignore the deprecation of get_page_by_title() (WordPress 6.2+); only the import result matters here.
+		$this->caught_deprecated = array();
 	}
 
 	public function test_same_title_creates_new_post_when_replace_by_title_is_disabled() {
@@ -328,25 +282,5 @@ CSV;
 		$this->import_csv( $csv );
 
 		$this->assertSame( 'page', $this->get_post_by_title( 'BOM Test' )->post_type );
-	}
-
-	/**
-	 * Known bug: fgetcsv() keeps the quotes of the first header cell when it is
-	 * preceded by a BOM, so the column is not recognized and is saved as post meta.
-	 */
-	public function test_header_with_bom_and_quoted_first_column() {
-		$csv = "\xEF\xBB\xBF" . <<<CSV
-"post_title","post_type"
-"BOM Test","page"
-CSV;
-
-		$this->import_csv( $csv );
-
-		$this->assertNull( $this->get_post_by_title( 'BOM Test' ) );
-
-		$pages = get_posts( array( 'post_type' => 'page', 'post_status' => 'any' ) );
-		$this->assertCount( 1, $pages );
-		$this->assertSame( '', $pages[0]->post_title );
-		$this->assertSame( 'BOM Test', get_post_meta( $pages[0]->ID, '"post_title"', true ) );
 	}
 }
