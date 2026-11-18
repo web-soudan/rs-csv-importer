@@ -1,11 +1,11 @@
 <?php
 /**
- * Tests for importing CSV files.
+ * Tests for RS_CSV_Importer.
  *
  * @package Really_Simple_CSV_Importer
  */
 
-class ImportTest extends WP_UnitTestCase {
+class RS_CSV_Importer_Test extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
