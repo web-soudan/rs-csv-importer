@@ -11,18 +11,42 @@ on:
             - 'readme.txt'
 
 jobs:
+    wp-versions:
+        name: Resolve WP versions
+        runs-on: ubuntu-latest
+        permissions: {}
+        outputs:
+            matrix: ${{ steps.resolve.outputs.matrix }}
+        steps:
+            - id: resolve
+              name: Resolve the latest 3 WordPress branches from the WordPress.org API
+              run: |
+                  json=$(curl -sf https://api.wordpress.org/core/stable-check/1.0/)
+                  latest=$(echo "$json" | jq -r 'to_entries[] | select(.value=="latest") | .key')
+                  latest_mm=$(echo "$latest" | grep -oE '^[0-9]+\.[0-9]+')
+                  branches=$(echo "$json" | jq -r 'keys[]' | grep -oE '^[0-9]+\.[0-9]+' | sort -uV | grep -x -B2 "$latest_mm")
+                  if [ -z "$latest" ] || [ "$(echo "$branches" | wc -l)" -ne 3 ]; then
+                    echo "::error::Failed to resolve WP versions (latest=$latest branches=$branches)"; exit 1
+                  fi
+                  matrix=$(echo "$branches" | jq -Rnc '[inputs] | reverse + ["trunk"]')
+                  echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+                  echo "Resolved: $matrix"
+
     phpunit:
+        needs: wp-versions
         name: PHPUnit (WordPress ${{ matrix.wp }}, PHP ${{ matrix.php }})
         runs-on: ubuntu-latest
         permissions:
             contents: read
+        # Trunk is a moving target; report its failures without failing the workflow.
+        continue-on-error: ${{ matrix.wp == 'trunk' }}
         strategy:
             fail-fast: false
             matrix:
-                wp: ['6.9', '7.0', '7.1']
+                wp: ${{ fromJSON(needs.wp-versions.outputs.matrix) }}
                 php: ['7.4', '8.5']
         env:
-            WP_ENV_CORE: WordPress/WordPress#${{ matrix.wp }}-branch
+            WP_ENV_CORE: WordPress/WordPress#${{ matrix.wp == 'trunk' && 'master' || format('{0}-branch', matrix.wp) }}
             WP_ENV_PHP_VERSION: ${{ matrix.php }}
         steps:
             - uses: actions/checkout@v7
