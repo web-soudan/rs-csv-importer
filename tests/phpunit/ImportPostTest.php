@@ -255,9 +255,6 @@ CSV;
 
 		$this->assertSame( 'Replaced content', get_post( $post_id )->post_content );
 		$this->assertCount( 1, get_posts( array( 'title' => 'Same Title' ) ) );
-
-		// Ignore the deprecation of get_page_by_title() (WordPress 6.2+); only the import result matters here.
-		$this->caught_deprecated = array();
 	}
 
 	public function test_same_title_creates_new_post_when_replace_by_title_is_disabled() {
