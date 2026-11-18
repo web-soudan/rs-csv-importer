@@ -417,6 +417,46 @@ class RS_CSV_Importer_Test extends WP_UnitTestCase {
 		$this->assertSame( 'Imported by custom class', $this->get_post_by_title( 'Custom Importer' )->post_content );
 	}
 
+	public function test_find_post_by_title_returns_the_oldest_post() {
+		$oldest = self::factory()->post->create( array( 'post_title' => 'Same Title' ) );
+		self::factory()->post->create( array( 'post_title' => 'Same Title' ) );
+
+		$this->assertSame( $oldest, ( new RS_CSV_Importer() )->find_post_by_title( 'Same Title', 'post' )->ID );
+	}
+
+	public function test_find_post_by_title_matches_any_post_status() {
+		$draft = self::factory()->post->create(
+			array(
+				'post_title'  => 'Draft',
+				'post_status' => 'draft',
+			)
+		);
+		$trash = self::factory()->post->create(
+			array(
+				'post_title'  => 'Trash',
+				'post_status' => 'trash',
+			)
+		);
+
+		$importer = new RS_CSV_Importer();
+		$this->assertSame( $draft, $importer->find_post_by_title( 'Draft', 'post' )->ID );
+		$this->assertSame( $trash, $importer->find_post_by_title( 'Trash', 'post' )->ID );
+	}
+
+	public function test_find_post_by_title_returns_null_when_not_found() {
+		self::factory()->post->create(
+			array(
+				'post_title' => 'Page Title',
+				'post_type'  => 'page',
+			)
+		);
+
+		$importer = new RS_CSV_Importer();
+		$this->assertNull( $importer->find_post_by_title( 'Not Found', 'post' ) );
+		// Posts of other post types do not match.
+		$this->assertNull( $importer->find_post_by_title( 'Page Title', 'post' ) );
+	}
+
 	/**
 	 * Build a CSV file from rows and import it.
 	 *
